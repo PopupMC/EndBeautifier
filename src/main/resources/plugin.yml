@@ -1,0 +1,7 @@
+name: EndBeautifier
+version: 1.0
+main: com.popupmc.endbeautifier.EndBeautifier
+description: End Beautifier Project
+author: junebug12851
+api-version: 1.15
+depend: [Vault]
