@@ -45,4 +45,7 @@ public class EndBeautifier extends JavaPlugin {
 
     static JavaPlugin plugin;
     public static Economy econ = null;
+
+    public static final String endWorldName = "main_the_end";
+    public static final String netherWorldName = "main_nether";
 }

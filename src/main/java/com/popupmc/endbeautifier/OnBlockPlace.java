@@ -24,7 +24,8 @@ public class OnBlockPlace implements Listener {
         World world = block.getWorld();
 
         // Stop here if this event isn't relative to what we're looking for
-        if(!Utility.isRelativeEvent(world, block))
+        if(!Utility.isRelativeEndEvent(world, block) &&
+            !Utility.isRelativeNetherEvent(world, block))
             return;
 
         // Get Player
@@ -53,42 +54,66 @@ public class OnBlockPlace implements Listener {
             // Keep it as dirt
         }
 
-        // Get end objective
-        Objective endBuildObj = p.getScoreboard().getObjective("endBuild");
-        if(endBuildObj == null) {
-            EndBeautifier.plugin.getLogger().warning("Objective endBuild is null");
+        // Get partial objective
+        // A partial is a partial stack of 64, not a full stack
+        Objective buildPartialObj = Utility.getBuildPartialObj(world, p);
+        if(buildPartialObj == null) {
+            EndBeautifier.plugin.getLogger().warning("buildPartialObj is null");
             return;
         }
 
-        int endBuild = endBuildObj.getScore(p.getName()).getScore();
+        int buildPartial = buildPartialObj.getScore(p.getName()).getScore();
 
         // Update it
-        endBuild++;
-        endBuildObj.getScore(p.getName()).setScore(endBuild);
+        buildPartial++;
 
-        // Get paid end objective
-        Objective paidEndBuildObj = p.getScoreboard().getObjective("paidEndBuild");
-        if(paidEndBuildObj == null) {
-            EndBeautifier.plugin.getLogger().warning("Objective paidEndBuild is null");
+        // If it's less than a full stack then increment and stop here
+        if(buildPartial < stack) {
+            buildPartialObj.getScore(p.getName()).setScore(buildPartial);
+            return;
+        }
+        // Otherwise reset value and keep going
+        else {
+            buildPartial = 0;
+            buildPartialObj.getScore(p.getName()).setScore(buildPartial);
+        }
+
+        // Get objective
+        Objective buildObj = Utility.getBuildObj(world, p);
+        if(buildObj == null) {
+            EndBeautifier.plugin.getLogger().warning("buildObj is null");
             return;
         }
 
-        int paidEndBuild = paidEndBuildObj.getScore(p.getName()).getScore();
+        int build = buildObj.getScore(p.getName()).getScore();
+
+        // Update it
+        build++;
+        buildObj.getScore(p.getName()).setScore(build);
+
+        // Get paid objective
+        Objective paidBuildObj = Utility.getPaidBuildObj(world, p);
+        if(paidBuildObj == null) {
+            EndBeautifier.plugin.getLogger().warning("paidBuildObj is null");
+            return;
+        }
+
+        int paidBuild = paidBuildObj.getScore(p.getName()).getScore();
 
         // Paid should always be less than or equal to unpaid
         // If greater than then stop here
-        if(paidEndBuild > endBuild)
+        if(paidBuild > build)
             return;
 
         // Get difference between paid and unpaid
-        int difference = endBuild - paidEndBuild;
+        int difference = build - paidBuild;
 
         // If not enough difference then stop here
-        if(difference < 0 || (difference % stack) != 0)
+        if(difference <= 0)
             return;
 
         // Get payout
-        float payout = (float)(difference / stack) * 0.01f;
+        float payout = (float)(difference) * 0.01f;
 
         // Pay the player
         EconomyResponse r = EndBeautifier.econ.depositPlayer(p, payout);
@@ -100,10 +125,13 @@ public class OnBlockPlace implements Listener {
         }
 
         // Update score
-        paidEndBuildObj.getScore(p.getName()).setScore(endBuild);
+        paidBuildObj.getScore(p.getName()).setScore(build);
 
         // Announce paid
-        p.sendMessage(ChatColor.GREEN + "You've been paid ❇" + payout + " for building and growing the end with non-end related blocks.");
+        if(world.getName().equalsIgnoreCase(EndBeautifier.endWorldName))
+            p.sendMessage(ChatColor.GREEN + "You've been paid ❇" + payout + " for building and growing the end with non-end related blocks.");
+        else
+            p.sendMessage(ChatColor.GREEN + "You've been paid ❇" + payout + " for building and growing the nether with non-nether related blocks.");
     }
 
     // For code cleanliness and readability
