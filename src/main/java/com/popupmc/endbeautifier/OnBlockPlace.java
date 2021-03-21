@@ -42,14 +42,12 @@ public class OnBlockPlace implements Listener {
             // 15% chance for it to turn into mycelium
             // 10% chance for Podzol
             // 9% chance for it to stay as dirt
-            if(randomNumber >= 50)
+            if(randomNumber >= 20)
                 e.getBlock().setType(Material.GRASS_BLOCK);
-            else if(randomNumber >= 25)
-                e.getBlock().setType(Material.GRASS_PATH);
-            else if(randomNumber >= 15)
-                e.getBlock().setType(Material.MYCELIUM);
             else if(randomNumber >= 10)
                 e.getBlock().setType(Material.PODZOL);
+            else if(randomNumber >= 5)
+                e.getBlock().setType(Material.MYCELIUM);
             //else
             // Keep it as dirt
         }
